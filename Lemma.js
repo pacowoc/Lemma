@@ -288,9 +288,11 @@ var init = () => {
                     text: "Import",
                     backgroundColor: ()=> importLegality ? Color.DEFAULT : Color.DEACTIVATED_UPGRADE,
                     onClicked: () => {
-                        if(importLegality) importedRun[lemma.level] = JSON.parse(importString,unBigStringify);
-                        P.hide()
-                    }
+                        if(importLegality) {
+                            importedRun[lemma.level] = JSON.parse(importString,unBigStringify);
+                            P.hide()
+                        } 
+                    }  
                 })
             ]
         })
