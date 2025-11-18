@@ -88,13 +88,7 @@ const isRTL = Localization.isRTL;
 
 var init = () => {
     currency = theory.createCurrency();
-    bestTime = Array.from(initialbestTime);
-    qs = Array.from(initialQ);
-    Ts = Array.from(initialT);
-    record = []
-    lastRun = [[],[],[],[],[],[],[]]
-    bestRun = [[],[],[],[],[],[],[]]
-    importedRun = [[],[],[],[],[],[],[]]
+    
 
     ///////////////////
     // Permanent Upgrades
@@ -157,8 +151,6 @@ var init = () => {
             })
         ];
         let cache = [];
-        scrollarea.push(cache);
-        cache = [];
         let recordTagged = record.map(entry => new TaggedPurchase(0,entry));
         let lastRunTagged = lastRun[lemma.level].map(entry => new TaggedPurchase(1,entry))
         let bestRunTagged = bestRun[lemma.level].map(entry => new TaggedPurchase(2,entry))
