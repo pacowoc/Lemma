@@ -156,28 +156,7 @@ var init = () => {
                         text: importedRun[lemma.level].length>0?importedRun[lemma.level].at(-1).time.toString(1): "==="
             })
         ];
-        let cache = [
-            ui.createLabel({
-                        horizontalTextAlignment: TextAlignment.CENTER,
-                        column: 0,
-                        text: "v",
-            }),
-            ui.createLabel({
-                        horizontalTextAlignment: TextAlignment.CENTER,
-                        column: 1,
-                        text: "v"
-            }),
-            ui.createLabel({
-                        horizontalTextAlignment: TextAlignment.CENTER,
-                        column: 2,
-                        text: "v"
-            }),
-            ui.createLabel({
-                        horizontalTextAlignment: TextAlignment.CENTER,
-                        column: 3,
-                        text: "v"
-            }),
-        ];
+        let cache = [];
         scrollarea.push(cache);
         cache = [];
         let recordTagged = record.map(entry => new TaggedPurchase(0,entry));
@@ -244,7 +223,8 @@ var init = () => {
                         verticalOptions: LayoutOptions.START,
                         children: [
                             ui.createGrid({
-                                children: title
+                                children: title,
+                                heightRequest:200
                             }),
                             ui.createScrollView({
                                 content:ui.createStackLayout({
@@ -253,7 +233,8 @@ var init = () => {
                                 verticalScrollBarVisibility: ScrollBarVisibility.ALWAYS,
                                 orientation: ScrollOrientation.VERTICAL,
                             })
-                        ]
+                        ],
+                        spacing:5
                     })
         P.show();
 
@@ -1174,13 +1155,13 @@ var getInternalState = () => {
 
     for (let i = 0; i < lemmaCount; ++i)
         result += " " + qs[i].toString() + " " + currencyValues[i].toString() + " " + bestTime[i].toString() + " " + Ts[i].toString() + " ";
-    result +="." + JSON.stringify(lastRun,bigStringify) + "." + JSON.stringify(bestRun,bigStringify) + "." + JSON.stringify(importedRun,bigStringify) + "." + JSON.stringify(record,bigStringify);
+    result +="~" + JSON.stringify(lastRun,bigStringify) + "~" + JSON.stringify(bestRun,bigStringify) + "~" + JSON.stringify(importedRun,bigStringify) + "~" + JSON.stringify(record,bigStringify);
     return result;
 }
 
 
 var setInternalState = (state) => {
-    let terms = state.split(".")
+    let terms = state.split("~")
     let values = terms[0].split(" ");
     if(terms.length>1&&values[0]>1){
         lastRun = JSON.parse(terms[1],unBigStringify);
