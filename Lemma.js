@@ -241,7 +241,7 @@ var init = () => {
         }))
         P.title = "Purchase Comparison" + " (L" + (lemma.level+1).toString() + ")";
         P.content = ui.createStackLayout({
-                        verticalOptions: LayoutOptions.START_AND_EXPAND,
+                        verticalOptions: LayoutOptions.START,
                         children: [
                             ui.createGrid({
                                 children: title
@@ -1174,13 +1174,13 @@ var getInternalState = () => {
 
     for (let i = 0; i < lemmaCount; ++i)
         result += " " + qs[i].toString() + " " + currencyValues[i].toString() + " " + bestTime[i].toString() + " " + Ts[i].toString() + " ";
-    result +="/" + JSON.stringify(lastRun,bigStringify) + "/" + JSON.stringify(bestRun,bigStringify) + "/" + JSON.stringify(importedRun,bigStringify) + "/" + JSON.stringify(record,bigStringify);
+    result +="." + JSON.stringify(lastRun,bigStringify) + "." + JSON.stringify(bestRun,bigStringify) + "." + JSON.stringify(importedRun,bigStringify) + "." + JSON.stringify(record,bigStringify);
     return result;
 }
 
 
 var setInternalState = (state) => {
-    let terms = state.split("/")
+    let terms = state.split(".")
     let values = terms[0].split(" ");
     if(terms.length>1&&values[0]>1){
         lastRun = JSON.parse(terms[1],unBigStringify);
