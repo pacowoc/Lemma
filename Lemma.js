@@ -1146,7 +1146,7 @@ var getInternalState = () => {
     var result =version.toString();
 
     for (let i = 0; i < lemmaCount; ++i)
-        result += " " + qs[i].toString() + " " + currencyValues[i].toString() + " " + bestTime[i].toString() + " " + Ts[i].toString() + " ";
+        result += " " + qs[i].toString() + " " + currencyValues[i].toString() + " " + bestTime[i].toString() + " " + Ts[i].toString();
     result +="~" + JSON.stringify(lastRun,bigStringify) + "~" + JSON.stringify(bestRun,bigStringify) + "~" + JSON.stringify(importedRun,bigStringify) + "~" + JSON.stringify(record,bigStringify);
     return result;
 }
