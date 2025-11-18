@@ -105,6 +105,7 @@ var init = () => {
     viewRecords.getInfo = (_) => "View the purchase records in a popup window.";
     viewRecords.bought = (_) => {
         viewRecords.level = 0;
+        let scrollarea = [];
         let title = [
             ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
@@ -159,60 +160,65 @@ var init = () => {
             ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
                         column: 0,
-                        row: 0,
                         text: "v",
             }),
             ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
                         column: 1,
-                        row: 0,
                         text: "v"
             }),
             ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
                         column: 2,
-                        row: 0,
                         text: "v"
             }),
             ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
                         column: 3,
-                        row: 0,
                         text: "v"
             }),
         ];
+        scrollarea.push(cache);
+        cache = [];
         let recordTagged = record.map(entry => new TaggedPurchase(0,entry));
         let lastRunTagged = lastRun[lemma.level].map(entry => new TaggedPurchase(1,entry))
         let bestRunTagged = bestRun[lemma.level].map(entry => new TaggedPurchase(2,entry))
         let importedRunTagged = importedRun[lemma.level].map(entry => new TaggedPurchase(3,entry))
         let combinedLog = lastRunTagged.concat(bestRunTagged).concat(importedRunTagged).concat(recordTagged);
-        let r = 1;
+        let hasContent = [false,false,false,false];
         combinedLog.sort((a,b) => a.pur.time-b.pur.time);
         for (let i=0; i<combinedLog.length; i++){ 
             let entry = combinedLog[i].pur;
             let tag = combinedLog[i].tag;
             let lastEntry = i>0 ? combinedLog[i-1].pur : null;
-            let hasContent = [false,false,false,false];
             if ((lastEntry != null && entry.time==lastEntry.time && !hasContent[tag])||i==0){
                 hasContent[tag]=true;
                 cache.push(
                     ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
                         column: tag,
-                        row: r,
                         fontSize: 12,
                         textColor: entry.count > 0 ? Color.fromHex("#00FF00") : Color.fromHex("#ff0000"),
                         text: entry.variable + "(" + entry.count.toString() + ")@" + entry.time.toString(1)
                     })
                 );
             }else{
-                r++;
+                for(let i=0;i<4;i++){
+                    if(!hasContent[i]){
+                        cache.push(ui.createLabel({
+                        horizontalTextAlignment: TextAlignment.CENTER,
+                        column: i,
+                        text: ""
+                        }))
+                    }
+                }
+                scrollarea.push(cache)
+                cache = [];
                 hasContent = [false,false,false,false];
                 cache.push(
                     ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
                         column: tag,
-                        row: r,
                         fontSize: 12,
                         textColor: entry.count > 0 ? Color.fromHex("#00FF00") : Color.fromHex("#ff0000"),
                         text: entry.variable + "(" + entry.count.toString() + ")@" + entry.time.toString(1)
@@ -220,6 +226,19 @@ var init = () => {
                 )
             }
         }
+        for(let i=0;i<4;i++){
+                if(!hasContent[i]){
+                    cache.push(ui.createLabel({
+                    horizontalTextAlignment: TextAlignment.CENTER,
+                    column: i,
+                    text: ""
+                    }))
+                }
+        }
+        scrollarea.push(cache);
+        let scrollareaChild = scrollarea.map((row)=>ui.createGrid({
+            children: row
+        }))
         P.title = "Purchase Comparison" + " (L" + (lemma.level+1).toString() + ")";
         P.content = ui.createStackLayout({
                         verticalOptions: LayoutOptions.START_AND_EXPAND,
@@ -228,8 +247,8 @@ var init = () => {
                                 children: title
                             }),
                             ui.createScrollView({
-                                content:ui.createGrid({
-                                    children: cache
+                                content:ui.createStackLayout({
+                                    children: scrollareaChild
                                 }),
                                 verticalScrollBarVisibility: ScrollBarVisibility.ALWAYS,
                                 orientation: ScrollOrientation.VERTICAL,
