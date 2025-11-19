@@ -970,7 +970,7 @@ var updateAvailability = () => {
 
     c11.isAvailable = lemma.level == 0;
     c12.isAvailable = lemma.level == 0;
-    c13.isAvailable = lemma.level == 0;
+    c13.isAvailable = lemma.level == 0; 
 
     c21.isAvailable = lemma.level == 1;
     c22.isAvailable = lemma.level == 1;
