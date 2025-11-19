@@ -86,6 +86,141 @@ var importedRun = [[],[],[],[],[],[],[]]
 
 const isRTL = Localization.isRTL;
 
+const replacementMap = {
+  "l1": "n",
+  "m1": "o",
+  "na": "A",
+  "oa": "L",
+  "nb": "B",
+  "ob": "M",
+  "nc": "C",
+  "oc": "N",
+  "nd": "D",
+  "od": "O",
+  "ne": "E",
+  "oe": "P",
+  "nf": "F",
+  "of": "Q",
+  "ng": "G",
+  "og": "R",
+  "nh": "H",
+  "oh": "S",
+  "ni": "I",
+  "oi": "T",
+  "nj": "J",
+  "oj": "U",
+  "nk": "K",
+  "ok": "V"
+};
+
+const replacementRegex = new RegExp(Object.keys(replacementMap).join("|"), "g");
+
+const reverseMap = Object.fromEntries(
+  Object.entries(replacementMap).map(([k,v]) => [v,k])
+);
+
+const reverseRegex = new RegExp(Object.keys(reverseMap).join("|"), "g");
+
+function encodeSaveString(str) {
+    let old = str;
+    do{
+        old = str;
+        str = str.replace(replacementRegex, match => replacementMap[match]);
+    }while(old!=str);
+    return str;
+}
+
+function decodeSaveString(str) {
+    let old = str;
+    do{
+        old = str;
+        str = str.replace(reverseRegex, match => reverseMap[match]);
+    }while(old!=str);
+    return str;
+}
+
+function toCompressedString(Run){
+    let lastTime = 0;
+    let rtn="";
+    for(let i=0;i<Run.length;++i){
+        let cache = "";
+        if(Run[i].count>0){
+            cache+="l";
+        }else{
+            cache+="m";
+        }
+        cache+=Math.abs(Run[i].count).toString();
+        switch(Run[i].variable){
+                case "c1":
+                    cache+="a"; break;
+                case "c2":
+                    cache+="b"; break;
+                case "c3":
+                    cache+="c"; break;
+                case "c4":
+                    cache+="d"; break;
+                case "c5":
+                    cache+="e"; break;
+                case "c6":
+                    cache+="f"; break;
+                case "c7":
+                    cache+="g"; break;
+                case "c8":
+                    cache+="h"; break;
+                case "q1":
+                    cache+="i"; break;
+                case "q2":
+                    cache+="j"; break;
+                case "Pf.":
+                    cache+="k"; break;
+        }
+        cache+=Math.round((Run[i].time.toNumber()-lastTime)*10).toString()
+        lastTime = Run[i].time.toNumber()
+        rtn+=cache;
+        
+    }
+    rtn=encodeSaveString(rtn)
+    return rtn;
+}
+
+function fromCompressedString(str){
+    let rtn = [];
+    str = decodeSaveString(str);
+    let lastTime = BigNumber.ZERO;
+    const regex = /([lm])(\d+)([a-k])(\d+)/gy;
+    let result = [];
+    while ((match = regex.exec(str)) !== null) {
+        result.push({
+            variable: match[3],      
+            timestamp: +match[4],    
+            sign: match[1],        
+            count: +match[2]     
+        });
+    }
+    result.forEach(m=>{
+        let variable;
+        switch(m.variable){
+            case "a": variable = "c1"; break;
+            case "b": variable = "c2"; break;
+            case "c": variable = "c3"; break;
+            case "d": variable = "c4"; break;
+            case "e": variable = "c5"; break;
+            case "f": variable = "c6"; break;
+            case "g": variable = "c7"; break;
+            case "h": variable = "c8"; break;
+            case "i": variable = "q1"; break;
+            case "j": variable = "q2"; break;
+            case "k": variable = "Pf."; break;
+        }
+        let time = BigNumber.from(m.timestamp/10)+lastTime;
+        lastTime = time;
+        let sign = (m.sign=="l") ? 1:-1;
+        let count = sign*m.count;
+        rtn.push(new Purchase(variable,time,count));
+    })
+    return rtn;
+}
+
 var init = () => {
     currency = theory.createCurrency();
 
@@ -160,7 +295,7 @@ var init = () => {
             let entry = combinedLog[i].pur;
             let tag = combinedLog[i].tag;
             let lastEntry = i>0 ? combinedLog[i-1].pur : null;
-            if ((lastEntry != null && entry.time==lastEntry.time)||i==0){
+            if ((lastEntry != null && entry.time.toString(1)==lastEntry.time.toString(1))||i==0){
                     cache.push(
                         ui.createLabel({
                             horizontalTextAlignment: TextAlignment.CENTER,
@@ -226,6 +361,7 @@ var init = () => {
                                 }),
                                 verticalScrollBarVisibility: ScrollBarVisibility.ALWAYS,
                                 orientation: ScrollOrientation.VERTICAL,
+                                heightRequest:800
                             })
                         ],
                         spacing:5
@@ -240,8 +376,8 @@ var init = () => {
     exportMenu.getInfo = (_) => "Opens a popup containing a string representing your runs, which can be copied to the clipboard.";
     exportMenu.bought = (_) => {
         exportMenu.level = 0;
-        let exportString = JSON.stringify(lastRun[lemma.level],bigStringify);
-        let exportStringBest = JSON.stringify(bestRun[lemma.level],bigStringify);
+        let exportString = toCompressedString(lastRun[lemma.level]);
+        let exportStringBest = toCompressedString(bestRun[lemma.level]);
         P.title = "Export and Import" + " (L" + (lemma.level+1).toString() + ")";
         P.content = ui.createStackLayout({
             children:[
@@ -273,7 +409,7 @@ var init = () => {
                     onTextChanged: (_, newTextValue) => {
                         try{
                             importString = newTextValue;
-                            JSON.parse(newTextValue,unBigStringify);
+                            fromCompressedString(importString);
                             importLegality = true;
                         }catch(e){
                             inputLegality = false;
@@ -286,7 +422,7 @@ var init = () => {
                     backgroundColor: ()=> importLegality ? Color.DEFAULT : Color.DEACTIVATED_UPGRADE,
                     onClicked: () => {
                         if(importLegality) {
-                            importedRun[lemma.level] = JSON.parse(importString,unBigStringify);
+                            importedRun[lemma.level] = fromCompressedString(importString);
                             P.hide()
                         } 
                     }  
