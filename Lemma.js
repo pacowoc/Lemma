@@ -290,12 +290,67 @@ var init = () => {
         let importedRunTagged = importedRun[lemma.level].map(entry => new TaggedPurchase(3,entry))
         let combinedLog = lastRunTagged.concat(bestRunTagged).concat(importedRunTagged).concat(recordTagged);
         let sameTimeoffset = [0,0,0,0];
+        let levels = [
+            {
+            "c1" :0,
+            "c2" :0,
+            "c3" :0,
+            "c4" :0,
+            "c5" :0,
+            "c6" :0,
+            "c7" :0,
+            "c8" :0,
+            "q1" :0,
+            "q2" :0,
+            "Pf.":0
+            },
+            {
+            "c1" :0,
+            "c2" :0,
+            "c3" :0,
+            "c4" :0,
+            "c5" :0,
+            "c6" :0,
+            "c7" :0,
+            "c8" :0,
+            "q1" :0,
+            "q2" :0,
+            "Pf.":0
+            },
+            {
+            "c1" :0,
+            "c2" :0,
+            "c3" :0,
+            "c4" :0,
+            "c5" :0,
+            "c6" :0,
+            "c7" :0,
+            "c8" :0,
+            "q1" :0,
+            "q2" :0,
+            "Pf.":0
+            },
+            {
+            "c1" :0,
+            "c2" :0,
+            "c3" :0,
+            "c4" :0,
+            "c5" :0,
+            "c6" :0,
+            "c7" :0,
+            "c8" :0,
+            "q1" :0,
+            "q2" :0,
+            "Pf.":0
+            },
+        ]
         combinedLog.sort((a,b) => a.pur.time-b.pur.time!=0?a.pur.time-b.pur.time:a.tag-b.tag);
         for (let i=0; i<combinedLog.length; i++){ 
             let entry = combinedLog[i].pur;
             let tag = combinedLog[i].tag;
             let lastEntry = i>0 ? combinedLog[i-1].pur : null;
             if ((lastEntry != null && entry.time.toString(1)==lastEntry.time.toString(1))||i==0){
+                    levels[tag][entry.variable]+=entry.count;
                     cache.push(
                         ui.createLabel({
                             horizontalTextAlignment: TextAlignment.CENTER,
@@ -303,7 +358,7 @@ var init = () => {
                             row: sameTimeoffset[tag],
                             fontSize: 12,
                             textColor: entry.count > 0 ? Color.fromHex("#00FF00") : Color.fromHex("#ff0000"),
-                            text: entry.variable + "(" + entry.count.toString() + ")@" + entry.time.toString(1)
+                            text: entry.variable + "(" + levels[tag][entry.variable].toString() + ")@" + entry.time.toString(1)
                         })
                     );
                     sameTimeoffset[tag]++;
@@ -321,13 +376,14 @@ var init = () => {
                 sameTimeoffset = [0,0,0,0]
                 scrollarea.push(cache)
                 cache = [];
+                levels[tag][entry.variable]+=entry.count;
                 cache.push(
                     ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
                         column: tag,
                         fontSize: 12,
                         textColor: entry.count > 0 ? Color.fromHex("#00FF00") : Color.fromHex("#ff0000"),
-                        text: entry.variable + "(" + entry.count.toString() + ")@" + entry.time.toString(1)
+                        text: entry.variable + "(" + levels[tag][entry.variable].toString() + ")@" + entry.time.toString(1)
                     })
                 );
                 sameTimeoffset[tag]++;
