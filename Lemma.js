@@ -965,6 +965,9 @@ var init = () => {
     }
 }
 var updateAvailability = () => {
+    viewRecords.isAvailable = lemma.level<lemmaCount;
+    exportRecords.isAvailable = lemma.level<lemmaCount;
+
     c11.isAvailable = lemma.level == 0;
     c12.isAvailable = lemma.level == 0;
     c13.isAvailable = lemma.level == 0;
