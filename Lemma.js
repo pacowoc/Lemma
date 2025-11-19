@@ -88,11 +88,9 @@ const isRTL = Localization.isRTL;
 
 var init = () => {
     currency = theory.createCurrency();
-    
 
     ///////////////////
     // Permanent Upgrades
-
 
     viewRecords = theory.createPermanentUpgrade(0, currency, new FreeCost());
     viewRecords.getDescription = (_) => "View Purchase Records";
@@ -156,36 +154,37 @@ var init = () => {
         let bestRunTagged = bestRun[lemma.level].map(entry => new TaggedPurchase(2,entry))
         let importedRunTagged = importedRun[lemma.level].map(entry => new TaggedPurchase(3,entry))
         let combinedLog = lastRunTagged.concat(bestRunTagged).concat(importedRunTagged).concat(recordTagged);
-        let hasContent = [false,false,false,false];
-        combinedLog.sort((a,b) => a.pur.time-b.pur.time);
+        let sameTimeoffset = [0,0,0,0];
+        combinedLog.sort((a,b) => a.pur.time-b.pur.time!=0?a.pur.time-b.pur.time:a.tag-b.tag);
         for (let i=0; i<combinedLog.length; i++){ 
             let entry = combinedLog[i].pur;
             let tag = combinedLog[i].tag;
             let lastEntry = i>0 ? combinedLog[i-1].pur : null;
-            if ((lastEntry != null && entry.time==lastEntry.time && !hasContent[tag])||i==0){
-                hasContent[tag]=true;
-                cache.push(
-                    ui.createLabel({
-                        horizontalTextAlignment: TextAlignment.CENTER,
-                        column: tag,
-                        fontSize: 12,
-                        textColor: entry.count > 0 ? Color.fromHex("#00FF00") : Color.fromHex("#ff0000"),
-                        text: entry.variable + "(" + entry.count.toString() + ")@" + entry.time.toString(1)
-                    })
-                );
+            if ((lastEntry != null && entry.time==lastEntry.time)||i==0){
+                    cache.push(
+                        ui.createLabel({
+                            horizontalTextAlignment: TextAlignment.CENTER,
+                            column: tag,
+                            row: sameTimeoffset[tag],
+                            fontSize: 12,
+                            textColor: entry.count > 0 ? Color.fromHex("#00FF00") : Color.fromHex("#ff0000"),
+                            text: entry.variable + "(" + entry.count.toString() + ")@" + entry.time.toString(1)
+                        })
+                    );
             }else{
+                sameTimeoffset = [0,0,0,0]
                 for(let i=0;i<4;i++){
-                    if(!hasContent[i]){
+                    if(sameTimeoffset[i]==0){
                         cache.push(ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
                         column: i,
+                        row:0,
                         text: ""
                         }))
                     }
                 }
                 scrollarea.push(cache)
                 cache = [];
-                hasContent = [false,false,false,false];
                 cache.push(
                     ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
@@ -198,14 +197,15 @@ var init = () => {
             }
         }
         for(let i=0;i<4;i++){
-                if(!hasContent[i]){
-                    cache.push(ui.createLabel({
-                    horizontalTextAlignment: TextAlignment.CENTER,
-                    column: i,
-                    text: ""
-                    }))
+                    if(sameTimeoffset[i]==0){
+                        cache.push(ui.createLabel({
+                        horizontalTextAlignment: TextAlignment.CENTER,
+                        column: i,
+                        row:0,
+                        text: ""
+                        }))
+                    }
                 }
-        }
         scrollarea.push(cache);
         let scrollareaChild = scrollarea.map((row)=>ui.createGrid({
             children: row
@@ -251,6 +251,7 @@ var init = () => {
                     text: exportString,
                     selectionLength:exportString.length,
                     cursorPosition:0,
+                    maxLength:2147483647
                 }),
                 ui.createLabel({
                     text: "String for Best Run: ",
@@ -260,6 +261,7 @@ var init = () => {
                     text: exportStringBest,
                     selectionLength:exportStringBest.length,
                     cursorPosition:0,
+                    maxLength:2147483647
                 }),
                 ui.createLabel({
                     text: "Input field for external Recordings: ",
@@ -274,7 +276,8 @@ var init = () => {
                         }catch(e){
                             inputLegality = false;
                         }
-                    }
+                    },
+                    maxLength:2147483647
                 }),
                 ui.createButton({
                     text: "Import",
@@ -856,13 +859,20 @@ var init = () => {
 
         switch(level+1)
         {
-            case 1: cost = 1e10; break;
+            case 1: cost = 0; break;
+            case 2: cost = 0; break;
+            case 3: cost = 0; break;
+            case 4: cost = 0; break; // To compensate for numerical errors
+            case 5: cost = 0; break;
+            case 6: cost = 0; break;
+            case 7: cost = 0; break;
+            /*case 1: cost = 1e10; break;
             case 2: cost = 1e8; break;
             case 3: cost = 1e20; break;
             case 4: cost = 1.0001e10; break; // To compensate for numerical errors
             case 5: cost = 1e25; break;
             case 6: cost = 1e15; break;
-            case 7: cost = 1e15; break;
+            case 7: cost = 1e15; break;*/
         }
 
         return BigNumber.from(cost);
@@ -871,6 +881,7 @@ var init = () => {
 
     lemma = theory.createSingularUpgrade(0, currency, lemmaCost);
     lemma.maxLevel = lemmaCount;
+    lemma.level = 0;
     lemma.getDescription = (_) => Localization.getUpgradeProveLemma(Math.min(lemmaCount, lemma.level + 1));
     lemma.getInfo = (_) => Localization.getUpgradeProveLemma(Math.min(lemmaCount, lemma.level + 1));
     lemma.refunded = (_) => {
@@ -1124,7 +1135,7 @@ var tick = (elapsedTime, multiplier) => {
     theory.invalidateQuaternaryValues();
 }
 
-let bigStringify = (_, val) => {
+var bigStringify = (_, val) => {
     try {
         if (val instanceof BigNumber)
             return 'BigNumber' + val.toBase64String();
@@ -1133,14 +1144,13 @@ let bigStringify = (_, val) => {
     ;
     return val;
 };
-let unBigStringify = (_, val) => {
+var unBigStringify = (_, val) => {
     if (val && typeof val === 'string') {
         if (val.startsWith('BigNumber'))
             return BigNumber.fromBase64String(val.substring(9));
     }
     return val;
 };
-
 
 var getInternalState = () => {
     var result =version.toString();
