@@ -171,8 +171,8 @@ var init = () => {
                             text: entry.variable + "(" + entry.count.toString() + ")@" + entry.time.toString(1)
                         })
                     );
+                    sameTimeoffset[tag]++;
             }else{
-                sameTimeoffset = [0,0,0,0]
                 for(let i=0;i<4;i++){
                     if(sameTimeoffset[i]==0){
                         cache.push(ui.createLabel({
@@ -183,6 +183,7 @@ var init = () => {
                         }))
                     }
                 }
+                sameTimeoffset = [0,0,0,0]
                 scrollarea.push(cache)
                 cache = [];
                 cache.push(
@@ -193,7 +194,8 @@ var init = () => {
                         textColor: entry.count > 0 ? Color.fromHex("#00FF00") : Color.fromHex("#ff0000"),
                         text: entry.variable + "(" + entry.count.toString() + ")@" + entry.time.toString(1)
                     })
-                )
+                );
+                sameTimeoffset[tag]++;
             }
         }
         for(let i=0;i<4;i++){
