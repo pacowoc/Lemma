@@ -1430,7 +1430,7 @@ var alwaysShowRefundButtons = () => true;
 var getPrimaryEquation = () => {
     theory.primaryEquationHeight = 50;
     theory.primaryEquationScale = 2;
-    if(lemma.level!=7)return "L"+(lemma.level+1).toString() +":" + Ts[lemma.level].toString(1) + "\\;" + "\\text{s}";
+    if(lemma.level!=lemmaCount)return "L"+(lemma.level+1).toString() +":" + Ts[lemma.level].toString(1) + "\\;" + "\\text{s}";
     else if(bestTime.reduce((a, b) => a + b, BigNumber.ZERO)>=timeLimit) return "Unfinished";
     else return "Total:" + bestTime.reduce((a, b) => a + b, BigNumber.ZERO).toString(1) + "\\;" + "\\text{s}";
 }
