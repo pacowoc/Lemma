@@ -344,11 +344,13 @@ var init = () => {
             "Pf.":0
             },
         ]
+        let maximumLength = Math.max(cache[0].length,cache[1].length,cache[2].length,cache[3].length)
         combinedLog.sort((a,b) => a.pur.time-b.pur.time);
         for (let i=0; i<combinedLog.length; i++){ 
             let entry = combinedLog[i].pur;
             let tag = combinedLog[i].tag;
             let lastEntry = i>0 ? combinedLog[i-1].pur : null;
+            let maximumLength = Math.max(cache[0].length,cache[1].length,cache[2].length,cache[3].length)
             if ((lastEntry != null && entry.time.toString(1)==lastEntry.time.toString(1))||i==0){
                     levels[tag][entry.variable]+=entry.count;
                     cache[tag].push(
@@ -360,7 +362,6 @@ var init = () => {
                         })
                     );
             }else{
-                let maximumLength = Math.max(cache[0].length,cache[1].length,cache[2].length,cache[3].length)
                 levels[tag][entry.variable]+=entry.count;
                 cache[tag].push(
                     ui.createLabel({
@@ -370,28 +371,28 @@ var init = () => {
                         text: entry.variable + "(" + levels[tag][entry.variable].toString() + ")@" + entry.time.toString(1)
                     })
                 );
-                while(cache[0].length<maximumLength){
+                while(cache[0].length<maximumLength&&cache[0].length<record.length){
                     cache[0].push(ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
                         fontSize: 12,
                         text: "."
                         }))
                 }
-                while(cache[1].length<maximumLength){
+                while(cache[1].length<maximumLength&&cache[1].length<lastRun[lemma.level].length){
                     cache[1].push(ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
                         fontSize: 12,
                         text: "."
                         }))
                 }
-                while(cache[2].length<maximumLength){
+                while(cache[2].length<maximumLength&&cache[2].length<bestRun[lemma.level].length){
                     cache[2].push(ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
                         fontSize: 12,
                         text: "."
                         }))
                 }
-                while(cache[3].length<maximumLength){
+                while(cache[3].length<maximumLength&&cache[3].length<importedRun[lemma.level].length){
                     cache[3].push(ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
                         fontSize: 12,
@@ -400,29 +401,29 @@ var init = () => {
                 }
             }
         }
-        let maximumLength = Math.max(cache[0].length,cache[1].length,cache[2].length,cache[3].length)
-                while(cache[0].length<maximumLength){
+                maximumLength = Math.max(cache[0].length,cache[1].length,cache[2].length,cache[3].length)
+                while(cache[0].length<maximumLength&&cache[0].length<record.length){
                     cache[0].push(ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
                         fontSize: 12,
                         text: "."
                         }))
                 }
-                while(cache[1].length<maximumLength){
+                while(cache[1].length<maximumLength&&cache[1].length<lastRun[lemma.level].length){
                     cache[1].push(ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
                         fontSize: 12,
                         text: "."
                         }))
                 }
-                while(cache[2].length<maximumLength){
+                while(cache[2].length<maximumLength&&cache[2].length<bestRun[lemma.level].length){
                     cache[2].push(ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
                         fontSize: 12,
                         text: "."
                         }))
                 }
-                while(cache[3].length<maximumLength){
+                while(cache[3].length<maximumLength&&cache[3].length<importedRun[lemma.level].length){
                     cache[3].push(ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
                         fontSize: 12,
@@ -1399,7 +1400,9 @@ var getInternalState = () => {
 
     for (let i = 0; i < lemmaCount; ++i)
         result += " " + qs[i].toString() + " " + currencyValues[i].toString() + " " + bestTime[i].toString() + " " + Ts[i].toString();
-    result +="~" + JSON.stringify(lastRun,bigStringify) + "~" + JSON.stringify(bestRun,bigStringify) + "~" + JSON.stringify(importedRun,bigStringify) + "~" + JSON.stringify(record,bigStringify);
+    result+="~"+toCompressedString(record)
+    for(let i=0;i<lemmaCount;++i)
+        result +="~" + toCompressedString(lastRun[i]) + "~" + toCompressedString(bestRun[i]) + "~" + toCompressedString(importedRun[i]);
     return result;
 }
 
@@ -1407,15 +1410,13 @@ var getInternalState = () => {
 var setInternalState = (state) => {
     let terms = state.split("~")
     let values = terms[0].split(" ");
-    if(terms.length>1&&values[0]>1){
-        lastRun = JSON.parse(terms[1],unBigStringify);
-        bestRun = JSON.parse(terms[2],unBigStringify);
-        importedRun = JSON.parse(terms[3],unBigStringify);
-        record = JSON.parse(terms[4],unBigStringify);
-    }
+    record = fromCompressedString(terms[1]);
 
     for (let i = 0; i < lemmaCount; ++i)
     {
+        if(terms[3*i+2]) lastRun[i] = fromCompressedString(terms[3*i+2]);
+        if(terms[3*i+3]) bestRun[i] = fromCompressedString(terms[3*i+3]);
+        if(terms[3*i+4]) importedRun[i] = fromCompressedString(terms[3*i+4]);
         if (values.length > 4*i + 1) qs[i] = parseBigNumber(values[4*i+1]);
         if (values.length > 4*i + 2) currencyValues[i] = parseBigNumber(values[4*i+2]);
         if (values.length > 4*i + 3) bestTime[i] = parseBigNumber(values[4*i + 3]);
