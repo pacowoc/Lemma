@@ -11,6 +11,7 @@ import { ClearButtonVisibility } from "./api/ui/properties/ClearButtonVisibility
 import { ScrollBarVisibility } from "./api/ui/properties/ScrollBarVisibility";
 import { ScrollOrientation } from "./api/ui/properties/ScrollOrientation";
 import { LayoutOptions } from "./api/ui/properties/LayoutOptions";
+import { Profiler } from "./api/Profiler";
 
 var id = "convergence_test_speedrun";
 var name = "Convergence Test (Speedrun)";
@@ -231,8 +232,6 @@ var init = () => {
     viewRecords.getDescription = (_) => "View Purchase Records";
     viewRecords.getInfo = (_) => "View the purchase records in a popup window.";
     viewRecords.bought = (_) => {
-        viewRecords.level = 0;
-        let scrollarea = [];
         let title = [
             ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
@@ -283,12 +282,13 @@ var init = () => {
                         text: importedRun[lemma.level].length>0?importedRun[lemma.level].at(-1).time.toString(1): "==="
             })
         ];
-        let cache = [];
+        viewRecords.level =0;
+        let cache = [[],[],[],[]];
         let recordTagged = record.map(entry => new TaggedPurchase(0,entry));
         let lastRunTagged = lastRun[lemma.level].map(entry => new TaggedPurchase(1,entry))
         let bestRunTagged = bestRun[lemma.level].map(entry => new TaggedPurchase(2,entry))
         let importedRunTagged = importedRun[lemma.level].map(entry => new TaggedPurchase(3,entry))
-        let combinedLog = lastRunTagged.concat(bestRunTagged).concat(importedRunTagged).concat(recordTagged);
+        let combinedLog = recordTagged.concat(lastRunTagged).concat(bestRunTagged).concat(importedRunTagged)
         let sameTimeoffset = [0,0,0,0];
         let levels = [
             {
@@ -344,65 +344,91 @@ var init = () => {
             "Pf.":0
             },
         ]
-        combinedLog.sort((a,b) => a.pur.time-b.pur.time!=0?a.pur.time-b.pur.time:a.tag-b.tag);
+        combinedLog.sort((a,b) => a.pur.time-b.pur.time);
         for (let i=0; i<combinedLog.length; i++){ 
             let entry = combinedLog[i].pur;
             let tag = combinedLog[i].tag;
             let lastEntry = i>0 ? combinedLog[i-1].pur : null;
             if ((lastEntry != null && entry.time.toString(1)==lastEntry.time.toString(1))||i==0){
                     levels[tag][entry.variable]+=entry.count;
-                    cache.push(
+                    cache[tag].push(
                         ui.createLabel({
                             horizontalTextAlignment: TextAlignment.CENTER,
-                            column: tag,
-                            row: sameTimeoffset[tag],
                             fontSize: 12,
                             textColor: entry.count > 0 ? Color.fromHex("#00FF00") : Color.fromHex("#ff0000"),
                             text: entry.variable + "(" + levels[tag][entry.variable].toString() + ")@" + entry.time.toString(1)
                         })
                     );
-                    sameTimeoffset[tag]++;
             }else{
-                for(let i=0;i<4;i++){
-                    if(sameTimeoffset[i]==0){
-                        cache.push(ui.createLabel({
-                        horizontalTextAlignment: TextAlignment.CENTER,
-                        column: i,
-                        row:0,
-                        text: ""
-                        }))
-                    }
-                }
-                sameTimeoffset = [0,0,0,0]
-                scrollarea.push(cache)
-                cache = [];
+                let maximumLength = Math.max(cache[0].length,cache[1].length,cache[2].length,cache[3].length)
                 levels[tag][entry.variable]+=entry.count;
-                cache.push(
+                cache[tag].push(
                     ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
-                        column: tag,
                         fontSize: 12,
                         textColor: entry.count > 0 ? Color.fromHex("#00FF00") : Color.fromHex("#ff0000"),
                         text: entry.variable + "(" + levels[tag][entry.variable].toString() + ")@" + entry.time.toString(1)
                     })
                 );
-                sameTimeoffset[tag]++;
+                while(cache[0].length<maximumLength){
+                    cache[0].push(ui.createLabel({
+                        horizontalTextAlignment: TextAlignment.CENTER,
+                        fontSize: 12,
+                        text: "."
+                        }))
+                }
+                while(cache[1].length<maximumLength){
+                    cache[1].push(ui.createLabel({
+                        horizontalTextAlignment: TextAlignment.CENTER,
+                        fontSize: 12,
+                        text: "."
+                        }))
+                }
+                while(cache[2].length<maximumLength){
+                    cache[2].push(ui.createLabel({
+                        horizontalTextAlignment: TextAlignment.CENTER,
+                        fontSize: 12,
+                        text: "."
+                        }))
+                }
+                while(cache[3].length<maximumLength){
+                    cache[3].push(ui.createLabel({
+                        horizontalTextAlignment: TextAlignment.CENTER,
+                        fontSize: 12,
+                        text: "."
+                        }))
+                }
             }
         }
-        for(let i=0;i<4;i++){
-                    if(sameTimeoffset[i]==0){
-                        cache.push(ui.createLabel({
+        let maximumLength = Math.max(cache[0].length,cache[1].length,cache[2].length,cache[3].length)
+                while(cache[0].length<maximumLength){
+                    cache[0].push(ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
-                        column: i,
-                        row:0,
-                        text: ""
+                        fontSize: 12,
+                        text: "."
                         }))
-                    }
                 }
-        scrollarea.push(cache);
-        let scrollareaChild = scrollarea.map((row)=>ui.createGrid({
-            children: row
-        }))
+                while(cache[1].length<maximumLength){
+                    cache[1].push(ui.createLabel({
+                        horizontalTextAlignment: TextAlignment.CENTER,
+                        fontSize: 12,
+                        text: "."
+                        }))
+                }
+                while(cache[2].length<maximumLength){
+                    cache[2].push(ui.createLabel({
+                        horizontalTextAlignment: TextAlignment.CENTER,
+                        fontSize: 12,
+                        text: "."
+                        }))
+                }
+                while(cache[3].length<maximumLength){
+                    cache[3].push(ui.createLabel({
+                        horizontalTextAlignment: TextAlignment.CENTER,
+                        fontSize: 12,
+                        text: "."
+                        }))
+                }
         P.title = "Purchase Comparison" + " (L" + (lemma.level+1).toString() + ")";
         P.content = ui.createStackLayout({
                         verticalOptions: LayoutOptions.START,
@@ -412,10 +438,26 @@ var init = () => {
                                 heightRequest:200
                             }),
                             ui.createScrollView({
-                                content:ui.createStackLayout({
-                                    children: scrollareaChild
+                                content:ui.createGrid({
+                                    children:[
+                                        ui.createStackLayout({
+                                            children: cache[0],
+                                            column:0,
+                                        }),
+                                        ui.createStackLayout({
+                                            children: cache[1],
+                                            column:1,
+                                        }),
+                                        ui.createStackLayout({
+                                            children: cache[2],
+                                            column:2,
+                                        }),
+                                        ui.createStackLayout({
+                                            children: cache[3],
+                                            column:3,
+                                        })
+                                    ]
                                 }),
-                                verticalScrollBarVisibility: ScrollBarVisibility.ALWAYS,
                                 orientation: ScrollOrientation.VERTICAL,
                                 heightRequest:800
                             })
@@ -1053,6 +1095,14 @@ var init = () => {
 
         switch(level+1)
         {
+            case 1: cost = 1; break;
+            case 2: cost = 1; break;
+            case 3: cost = 1; break;
+            case 4: cost = 1; break; // To compensate for numerical errors
+            case 5: cost = 1; break;
+            case 6: cost = 1; break;
+            case 7: cost = 1; break;
+            /*
             case 1: cost = 1e10; break;
             case 2: cost = 1e8; break;
             case 3: cost = 1e20; break;
@@ -1060,6 +1110,7 @@ var init = () => {
             case 5: cost = 1e25; break;
             case 6: cost = 1e15; break;
             case 7: cost = 1e15; break;
+            */
         }
 
         return BigNumber.from(cost);
@@ -1209,6 +1260,7 @@ var onLemmaChanged = () => {
     currency.value = currencyValues[lemma.level];
     theory.clearGraph();
 }
+
 
 var tick = (elapsedTime, multiplier) => {
     let dt = BigNumber.from(elapsedTime); // No multiplier. Everyone is equal.
