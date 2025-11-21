@@ -264,98 +264,43 @@ function fromCompressedString(str){
     return rtn;
 }
 
-function merge4(a, b, c, d) {
-  const arrs = [a, b, c, d];
-  const idx = [0, 0, 0, 0];
-  const result = [];
+function merge3(a, b, c) {
+  const arrs = [a, b, c];
+  const idx = [0, 0, 0];
+  const result = [[],[],[]];
+  let sameTime = [0,0,0]
 
   while (true) {
     let min = Infinity;
     let minIndex = -1;
-    for (let i = 0; i < 4; i++) {
-      if (idx[i] < arrs[i].length && arrs[i][idx[i]].pur.time < min) {
-        min = arrs[i][idx[i]].pur.time;
-        minPurchase = arrs[i][idx[i]]
+    for (let i = 0; i < 3; i++) {
+      if (idx[i] < arrs[i].length && arrs[i][idx[i]].time < min) {
+        min = arrs[i][idx[i]].time;
+        result[i].push(arrs[i][idx[i]]);
+        sameTime[i]++;
         minIndex = i;
+      }else if(idx[i] < arrs[i].length && arrs[i][idx[i]].time == min){
+        result[i].push(arrs[i][idx[i]]);
+        sameTime[i]++;
+        minIndex = i;
+      }else{
+        result[i].push(null);
       }
     }
 
     if (minIndex === -1) break;
-    result.push(minPurchase);
-    idx[minIndex]++;
+    for(i=0;i<3;i++){
+        idx[i]+=sameTime[i];
+    }
+    sameTime = [0,0,0]
   }
 
   return result;
 }
 
-var init = () => {
-    currency = theory.createCurrency();
-
-    ///////////////////
-    // Permanent Upgrades
-
-    viewRecords = theory.createPermanentUpgrade(0, currency, new FreeCost());
-    viewRecords.getDescription = (_) => "View Purchase Records";
-    viewRecords.getInfo = (_) => "View the purchase records in a popup window.";
-    viewRecords.bought = (_) => {
-        let title = [
-            ui.createLabel({
-                        horizontalTextAlignment: TextAlignment.CENTER,
-                        column: 0,
-                        row: 0,
-                        text: "Active",
-            }),
-            ui.createLabel({
-                        horizontalTextAlignment: TextAlignment.CENTER,
-                        column: 1,
-                        row: 0,
-                        text: "Last"
-            }),
-            ui.createLabel({
-                        horizontalTextAlignment: TextAlignment.CENTER,
-                        column: 2,
-                        row: 0,
-                        text: "Best"
-            }),
-            ui.createLabel({
-                        horizontalTextAlignment: TextAlignment.CENTER,
-                        column: 3,
-                        row: 0,
-                        text: "Ref."
-            }),
-            ui.createLabel({
-                        horizontalTextAlignment: TextAlignment.CENTER,
-                        column: 0,
-                        row: 1,
-                        text: ()=>Ts[lemma.level].toString(1),
-            }),
-            ui.createLabel({
-                        horizontalTextAlignment: TextAlignment.CENTER,
-                        column: 1,
-                        row: 1,
-                        text: lastRun[lemma.level].length>0 ? lastRun[lemma.level].at(-1).time.toString(1): "==="
-            }),
-            ui.createLabel({
-                        horizontalTextAlignment: TextAlignment.CENTER,
-                        column: 2,
-                        row: 1,
-                        text: bestRun[lemma.level].length>0 ? bestRun[lemma.level].at(-1).time.toString(1): "==="
-            }),
-            ui.createLabel({
-                        horizontalTextAlignment: TextAlignment.CENTER,
-                        column: 3,
-                        row: 1,
-                        text: importedRun[lemma.level].length>0?importedRun[lemma.level].at(-1).time.toString(1): "==="
-            })
-        ];
-        viewRecords.level =0;
-        let cache = [[],[],[],[]];
-        let recordTagged = record.map(entry => new TaggedPurchase(0,entry));
-        let lastRunTagged = lastRun[lemma.level].map(entry => new TaggedPurchase(1,entry))
-        let bestRunTagged = bestRun[lemma.level].map(entry => new TaggedPurchase(2,entry))
-        let importedRunTagged = importedRun[lemma.level].map(entry => new TaggedPurchase(3,entry))
-        let combinedLog = merge4(recordTagged,lastRunTagged,bestRunTagged,importedRunTagged)
-        let levels = [
+function getViewRecords(combinedLog,j,page){
+    cache = []
+    let levels = [
             {
             "c1" :0,
             "c2" :0,
@@ -409,91 +354,111 @@ var init = () => {
             "Pf.":0
             },
         ]
-        let maximumLength;
-        for (let i=0; i<combinedLog.length; i++){ 
-            let entry = combinedLog[i].pur;
-            let tag = combinedLog[i].tag;
-            let lastEntry = i>0 ? combinedLog[i-1].pur : null;
-            let maximumLength = Math.max(cache[0].length,cache[1].length,cache[2].length,cache[3].length)
-            if ((lastEntry != null && entry.time.toString(1)==lastEntry.time.toString(1))||i==0){
-                    levels[tag][entry.variable]+=entry.count;
-                    cache[tag].push(
-                        ui.createLabel({
-                            horizontalTextAlignment: TextAlignment.CENTER,
-                            fontSize: 12,
-                            textColor: entry.count > 0 ? Color.fromHex("#00FF00") : Color.fromHex("#ff0000"),
-                            text: entry.variable + "(" + levels[tag][entry.variable].toString() + ")@" + entry.time.toString(1)
-                        })
-                    );
-            }else{
-                levels[tag][entry.variable]+=entry.count;
-                cache[tag].push(
-                    ui.createLabel({
+    for(let i=page*50;i<Math.min(page*50+50,combinedLog[0].length);i++){
+                if(combinedLog[j][i]==null){
+                    cache.push(ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
-                        fontSize: 12,
-                        textColor: entry.count > 0 ? Color.fromHex("#00FF00") : Color.fromHex("#ff0000"),
-                        text: entry.variable + "(" + levels[tag][entry.variable].toString() + ")@" + entry.time.toString(1)
-                    })
-                );
-                while(cache[0].length<maximumLength&&cache[0].length<record.length){
-                    cache[0].push(ui.createLabel({
-                        horizontalTextAlignment: TextAlignment.CENTER,
+                        textColor: Color.TRANSPARENT,
                         fontSize: 12,
                         text: "."
                         }))
                 }
-                while(cache[1].length<maximumLength&&cache[1].length<lastRun[lemma.level].length){
-                    cache[1].push(ui.createLabel({
-                        horizontalTextAlignment: TextAlignment.CENTER,
-                        fontSize: 12,
-                        text: "."
-                        }))
+                else{
+                    cache.push(
+                            ui.createLabel({
+                                horizontalTextAlignment: TextAlignment.CENTER,
+                                fontSize: 12,
+                                textColor: combinedLog[j][i].count > 0 ? Color.fromHex("#00FF00") : Color.fromHex("#ff0000"),
+                                text: combinedLog[j][i].variable + "(" + levels[j][combinedLog[j][i].variable].toString() + ")@" + combinedLog[j][i].variable.toString(1)
+                            })
+                        );
+                    levels[j][combinedLog[j][i].variable]+=combinedLog[j][i].count;
                 }
-                while(cache[2].length<maximumLength&&cache[2].length<bestRun[lemma.level].length){
-                    cache[2].push(ui.createLabel({
+    }
+    return cache;
+}
+
+var init = () => {
+    currency = theory.createCurrency();
+
+    ///////////////////
+    // Permanent Upgrades
+
+    viewRecords = theory.createPermanentUpgrade(0, currency, new FreeCost());
+    viewRecords.getDescription = (_) => "View Purchase Records";
+    viewRecords.getInfo = (_) => "View the purchase records in a popup window.";
+    viewRecords.bought = (_) => {
+        let page = 0;
+        let combinedLog = merge3(lastRun[lemma.level],bestRun[lemma.level],importedRun[lemma.level])
+        let title = [
+            ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
-                        fontSize: 12,
-                        text: "."
-                        }))
-                }
-                while(cache[3].length<maximumLength&&cache[3].length<importedRun[lemma.level].length){
-                    cache[3].push(ui.createLabel({
+                        column: 0,
+                        row: 0,
+                        text: "Last"
+            }),
+            ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
-                        fontSize: 12,
-                        text: "."
-                        }))
-                }
-            }
-        }
-                maximumLength = Math.max(cache[0].length,cache[1].length,cache[2].length,cache[3].length)
-                while(cache[0].length<maximumLength&&cache[0].length<record.length){
-                    cache[0].push(ui.createLabel({
+                        column: 1,
+                        row: 0,
+                        text: "Best"
+            }),
+            ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
-                        fontSize: 12,
-                        text: "."
-                        }))
-                }
-                while(cache[1].length<maximumLength&&cache[1].length<lastRun[lemma.level].length){
-                    cache[1].push(ui.createLabel({
+                        column: 2,
+                        row: 0,
+                        text: "Ref."
+            }),
+            ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
-                        fontSize: 12,
-                        text: "."
-                        }))
-                }
-                while(cache[2].length<maximumLength&&cache[2].length<bestRun[lemma.level].length){
-                    cache[2].push(ui.createLabel({
+                        column: 0,
+                        row: 1,
+                        text: lastRun[lemma.level].length>0 ? lastRun[lemma.level].at(-1).time.toString(1): "==="
+            }),
+            ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
-                        fontSize: 12,
-                        text: "."
-                        }))
-                }
-                while(cache[3].length<maximumLength&&cache[3].length<importedRun[lemma.level].length){
-                    cache[3].push(ui.createLabel({
+                        column: 1,
+                        row: 1,
+                        text: bestRun[lemma.level].length>0 ? bestRun[lemma.level].at(-1).time.toString(1): "==="
+            }),
+            ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
-                        fontSize: 12,
-                        text: "."
-                        }))
-                }
+                        column: 2,
+                        row: 1,
+                        text: importedRun[lemma.level].length>0?importedRun[lemma.level].at(-1).time.toString(1): "==="
+            }),
+            ui.createButton({
+                        isEnabled: ()=>page!=0,
+                        text:"<",
+                        column: 0,
+                        row: 2,
+                        onClicked:()=>{
+                            page-=1;
+                            P.content.children[1].content.children[0].children = getViewRecords(combinedLog,0,page);
+                            P.content.children[1].content.children[1].children = getViewRecords(combinedLog,1,page);
+                            P.content.children[1].content.children[2].children = getViewRecords(combinedLog,2,page);
+                        }
+            }),
+            ui.createLabel({
+                        text:()=>page.toString()+"/"+Math.floor(combinedLog[0].length/50)+1,
+                        horizontalTextAlignment: TextAlignment.CENTER,
+                        column: 1,
+                        row: 2,
+            })
+            ui.createButton({
+                        isEnabled: ()=>page*50<=combinedLog[0].length,
+                        text:">",
+                        column: 2,
+                        row: 2,
+                        onClicked:()=>{
+                            page+=1;
+                            P.content.children[1].content.children[0].children = getViewRecords(combinedLog,0,page);
+                            P.content.children[1].content.children[1].children = getViewRecords(combinedLog,1,page);
+                            P.content.children[1].content.children[2].children = getViewRecords(combinedLog,2,page);
+                        }
+            })
+        ];
+        viewRecords.level =0;
         P.title = "Purchase Comparison" + " (L" + (lemma.level+1).toString() + ")";
         P.content = ui.createStackLayout({
                         verticalOptions: LayoutOptions.START,
@@ -506,20 +471,15 @@ var init = () => {
                                 content:ui.createGrid({
                                     children:[
                                         ui.createStackLayout({
-                                            children: cache[0],
+                                            children: getViewRecords(combinedLog,0,page),
                                             column:0,
                                         }),
                                         ui.createStackLayout({
-                                            children: cache[1],
+                                            children: getViewRecords(combinedLog,1,page),
                                             column:1,
-                                        }),
-                                        ui.createStackLayout({
-                                            children: cache[2],
+                                        }),ui.createStackLayout({
+                                            children: getViewRecords(combinedLog,2,page),
                                             column:2,
-                                        }),
-                                        ui.createStackLayout({
-                                            children: cache[3],
-                                            column:3,
                                         })
                                     ]
                                 }),
