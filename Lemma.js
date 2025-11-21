@@ -444,7 +444,7 @@ var init = () => {
                         horizontalTextAlignment: TextAlignment.CENTER,
                         column: 1,
                         row: 2,
-            })
+            }),
             ui.createButton({
                         isEnabled: ()=>page*50<=combinedLog[0].length,
                         text:">",
