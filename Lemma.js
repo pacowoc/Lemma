@@ -84,9 +84,9 @@ var record = []
 var lastRun = [[],[],[],[],[],[],[]]
 var bestRun = [[],[],[],[],[],[],[]]
 var importedRun = [[],[],[],[],[],[],[]]
-var lastRunTokenized = ["","","","","","",""]
-var bestRunTokenized = ["","","","","","",""]
-var importedRunTokenized = ["","","","","","",""]
+var lastRunTokenizedLoose = ["","","","","","",""]
+var bestRunTokenizedLoose = ["","","","","","",""]
+var importedRunTokenizedLoose = ["","","","","","",""]
 const isRTL = Localization.isRTL;
 
 const replacementMap2 = {
@@ -145,7 +145,7 @@ function decodeSaveString(str) {
     return str
 }
 
-function toCompressedString(Run){
+function toLooseString(Run){
     let lastTime = 0;
     let rtn="";
     for(let i=0;i<Run.length;++i){
@@ -185,9 +185,46 @@ function toCompressedString(Run){
         rtn+=cache;
         
     }
-    rtn=encodeSaveString(rtn)
     return rtn;
 }
+
+function fromLooseString(str){
+    let rtn = [];
+    let lastTime = BigNumber.ZERO;
+    const regex = /([lm])(\d+)([a-k])(\d+)/gy;
+    let result = [];
+    while ((match = regex.exec(str)) !== null) {
+        result.push({
+            variable: match[3],      
+            timestamp: +match[4],    
+            sign: match[1],        
+            count: +match[2]     
+        });
+    }
+    result.forEach(m=>{
+        let variable;
+        switch(m.variable){
+            case "a": variable = "c1"; break;
+            case "b": variable = "c2"; break;
+            case "c": variable = "c3"; break;
+            case "d": variable = "c4"; break;
+            case "e": variable = "c5"; break;
+            case "f": variable = "c6"; break;
+            case "g": variable = "c7"; break;
+            case "h": variable = "c8"; break;
+            case "i": variable = "q1"; break;
+            case "j": variable = "q2"; break;
+            case "k": variable = "Pf."; break;
+        }
+        let time = BigNumber.from(m.timestamp/10)+lastTime;
+        lastTime = time;
+        let sign = (m.sign=="l") ? 1:-1;
+        let count = sign*m.count;
+        rtn.push(new Purchase(variable,time,count));
+    })
+    return rtn;
+}
+
 
 function fromCompressedString(str){
     let rtn = [];
@@ -225,6 +262,30 @@ function fromCompressedString(str){
         rtn.push(new Purchase(variable,time,count));
     })
     return rtn;
+}
+
+function merge4(a, b, c, d) {
+  const arrs = [a, b, c, d];
+  const idx = [0, 0, 0, 0];
+  const result = [];
+
+  while (true) {
+    let min = Infinity;
+    let minIndex = -1;
+    for (let i = 0; i < 4; i++) {
+      if (idx[i] < arrs[i].length && arrs[i][idx[i]].pur.time < min) {
+        min = arrs[i][idx[i]].pur.time;
+        minPurchase = arrs[i][idx[i]]
+        minIndex = i;
+      }
+    }
+
+    if (minIndex === -1) break;
+    result.push(minPurchase);
+    idx[minIndex]++;
+  }
+
+  return result;
 }
 
 var init = () => {
@@ -293,8 +354,7 @@ var init = () => {
         let lastRunTagged = lastRun[lemma.level].map(entry => new TaggedPurchase(1,entry))
         let bestRunTagged = bestRun[lemma.level].map(entry => new TaggedPurchase(2,entry))
         let importedRunTagged = importedRun[lemma.level].map(entry => new TaggedPurchase(3,entry))
-        let combinedLog = recordTagged.concat(lastRunTagged).concat(bestRunTagged).concat(importedRunTagged)
-        let sameTimeoffset = [0,0,0,0];
+        let combinedLog = merge4(recordTagged,lastRunTagged,bestRunTagged,importedRunTagged)
         let levels = [
             {
             "c1" :0,
@@ -349,8 +409,7 @@ var init = () => {
             "Pf.":0
             },
         ]
-        let maximumLength = Math.max(cache[0].length,cache[1].length,cache[2].length,cache[3].length)
-        combinedLog.sort((a,b) => a.pur.time-b.pur.time);
+        let maximumLength;
         for (let i=0; i<combinedLog.length; i++){ 
             let entry = combinedLog[i].pur;
             let tag = combinedLog[i].tag;
@@ -480,6 +539,8 @@ var init = () => {
     exportMenu.getInfo = (_) => "Opens a popup containing a string representing your runs, which can be copied to the clipboard.";
     exportMenu.bought = (_) => {
         exportMenu.level = 0;
+        let exportLast = encodeSaveString(lastRunTokenizedLoose[lemma.level]);
+        let exportBest = encodeSaveString(bestRunTokenizedLoose[lemma.level])
         P.title = "Export and Import" + " (L" + (lemma.level+1).toString() + ")";
         P.content = ui.createStackLayout({
             children:[
@@ -488,8 +549,8 @@ var init = () => {
                     horizontalTextAlignment: TextAlignment.CENTER,
                 }),
                 ui.createEntry({
-                    text: lastRunTokenized[lemma.level],
-                    selectionLength:lastRunTokenized[lemma.level].length,
+                    text: exportLast,
+                    selectionLength:exportLast.length,
                     cursorPosition:0,
                     maxLength:2147483647
                 }),
@@ -498,8 +559,8 @@ var init = () => {
                     horizontalTextAlignment: TextAlignment.CENTER,
                 }),
                 ui.createEntry({
-                    text: bestRunTokenized[lemma.level],
-                    selectionLength:bestRunTokenized[lemma.level].length,
+                    text: exportBest,
+                    selectionLength:exportBest.length,
                     cursorPosition:0,
                     maxLength:2147483647
                 }),
@@ -525,7 +586,7 @@ var init = () => {
                     onClicked: () => {
                         if(importLegality) {
                             importedRun[lemma.level] = fromCompressedString(importString);
-                            importedRunTokenized[lemma.level] = importString;
+                            importedRunTokenizedLoose[lemma.level] = decodeSaveString(importString);
                             importString = "";
                             P.hide()
                         } 
@@ -1146,13 +1207,13 @@ var init = () => {
             lemma.level-=1;
             record.push(new Purchase('Pf.', Ts[lemma.level], 1));
             lastRun[lemma.level]=record.slice(0);
-            lastRunTokenized[lemma.level]=toCompressedString(lastRun[lemma.level]);
+            lastRunTokenizedLoose[lemma.level]=toLooseString(lastRun[lemma.level]);
             let oldtime = bestTime[lemma.level];
             bestTime[lemma.level] = bestTime[lemma.level].min(Ts[lemma.level]);
             P.title = "Attempt Summary";
             if(oldtime == timeLimit) {
                 bestRun[lemma.level]=lastRun[lemma.level];
-                bestRunTokenized[lemma.level]=toCompressedString(lastRun[lemma.level]);
+                bestRunTokenizedLoose[lemma.level]=toLooseString(lastRun[lemma.level]);
                 P.content = ui.createStackLayout({
                     children: [
                         ui.createLabel({
@@ -1172,7 +1233,7 @@ var init = () => {
             }
             else if(Ts[lemma.level]<oldtime) {
                 bestRun[lemma.level]=lastRun[lemma.level];
-                bestRunTokenized[lemma.level]=toCompressedString(lastRun[lemma.level]);
+                bestRunTokenizedLoose[lemma.level]=toLooseString(lastRun[lemma.level]);
                 P.content = ui.createStackLayout({
                     children: [
                         ui.createLabel({
@@ -1192,7 +1253,7 @@ var init = () => {
             }
             else if(Ts[lemma.level]==oldtime){
                 bestRun[lemma.level]=lastRun[lemma.level];
-                bestRunTokenized[lemma.level]=toCompressedString(lastRun[lemma.level]);
+                bestRunTokenizedLoose[lemma.level]=toLooseString(lastRun[lemma.level]);
                 P.content = 
                         ui.createLabel({
                             text: "You have proven Lemma " + (lemma.level+1).toString()+ " in " + Ts[lemma.level].toString(1) + " seconds, this ties your old record. Keep going!",
@@ -1411,9 +1472,9 @@ var getInternalState = () => {
 
     for (let i = 0; i < lemmaCount; ++i)
         result += " " + qs[i].toString() + " " + currencyValues[i].toString() + " " + bestTime[i].toString() + " " + Ts[i].toString();
-    result+="~"+toCompressedString(record)
+    result+="~"+toLooseString(record)
     for(let i=0;i<lemmaCount;++i)
-        result +="~" + lastRunTokenized[i] + "~" + bestRunTokenized[i] + "~" + importedRunTokenized[i];
+        result +="~" + lastRunTokenizedLoose[i] + "~" + bestRunTokenizedLoose[i] + "~" + importedRunTokenizedLoose[i];
     return result;
 }
 
@@ -1421,16 +1482,14 @@ var getInternalState = () => {
 var setInternalState = (state) => {
     let terms = state.split("~")
     let values = terms[0].split(" ");
-    record = fromCompressedString(terms[1]);
-
+    record = fromLooseString(terms[1]);
     for (let i = 0; i < lemmaCount; ++i)
     {
-        if(terms[3*i+2]) lastRun[i] = fromCompressedString(terms[3*i+2]);
-        if(terms[3*i+3]) bestRun[i] = fromCompressedString(terms[3*i+3]);
-        if(terms[3*i+4]) importedRun[i] = fromCompressedString(terms[3*i+4]);
-        lastRunTokenized[i] = terms[3*i+2];
-        bestRunTokenized[i] = terms[3*i+2];
-        importedRunTokenized[i] = terms[3*i+2];
+        if(terms[3*i+2]) lastRun[i] = [];
+        if(terms[3*i+3]) bestRun[i] = fromLooseString(terms[3*i+3]);
+        if(terms[3*i+4]) importedRun[i] = fromLooseString(terms[3*i]+4);
+        bestRunTokenizedLoose[i] = terms[3*i+3];
+        importedRunTokenizedLoose[i] = terms[3*i+4]
         if (values.length > 4*i + 1) qs[i] = parseBigNumber(values[4*i+1]);
         if (values.length > 4*i + 2) currencyValues[i] = parseBigNumber(values[4*i+2]);
         if (values.length > 4*i + 3) bestTime[i] = parseBigNumber(values[4*i + 3]);
