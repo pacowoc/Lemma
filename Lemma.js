@@ -84,12 +84,18 @@ var record = []
 var lastRun = [[],[],[],[],[],[],[]]
 var bestRun = [[],[],[],[],[],[],[]]
 var importedRun = [[],[],[],[],[],[],[]]
-
+var lastRunTokenized = ["","","","","","",""]
+var bestRunTokenized = ["","","","","","",""]
+var importedRunTokenized = ["","","","","","",""]
 const isRTL = Localization.isRTL;
 
+const replacementMap2 = {
+    "l1": "n",
+    "m1": "o"
+}
+
+
 const replacementMap = {
-  "l1": "n",
-  "m1": "o",
   "na": "A",
   "oa": "L",
   "nb": "B",
@@ -115,29 +121,28 @@ const replacementMap = {
 };
 
 const replacementRegex = new RegExp(Object.keys(replacementMap).join("|"), "g");
+const replacementRegex2 = new RegExp(Object.keys(replacementMap2).join("|"), "g");
 
 const reverseMap = Object.fromEntries(
   Object.entries(replacementMap).map(([k,v]) => [v,k])
 );
+const reverseMap2 = Object.fromEntries(
+  Object.entries(replacementMap2).map(([k,v]) => [v,k])
+);
 
 const reverseRegex = new RegExp(Object.keys(reverseMap).join("|"), "g");
+const reverseRegex2 = new RegExp(Object.keys(reverseMap2).join("|"), "g");
 
 function encodeSaveString(str) {
-    let old = str;
-    do{
-        old = str;
-        str = str.replace(replacementRegex, match => replacementMap[match]);
-    }while(old!=str);
-    return str;
+    str = str.replace(replacementRegex2, match => replacementMap2[match])
+    str = str.replace(replacementRegex, match => replacementMap[match]);
+    return str
 }
 
 function decodeSaveString(str) {
-    let old = str;
-    do{
-        old = str;
-        str = str.replace(reverseRegex, match => reverseMap[match]);
-    }while(old!=str);
-    return str;
+    str = str.replace(reverseRegex, match => reverseMap[match]);
+    str = str.replace(reverseRegex2, match => reverseMap2[match])
+    return str
 }
 
 function toCompressedString(Run){
@@ -475,8 +480,6 @@ var init = () => {
     exportMenu.getInfo = (_) => "Opens a popup containing a string representing your runs, which can be copied to the clipboard.";
     exportMenu.bought = (_) => {
         exportMenu.level = 0;
-        let exportString = toCompressedString(lastRun[lemma.level]);
-        let exportStringBest = toCompressedString(bestRun[lemma.level]);
         P.title = "Export and Import" + " (L" + (lemma.level+1).toString() + ")";
         P.content = ui.createStackLayout({
             children:[
@@ -485,8 +488,8 @@ var init = () => {
                     horizontalTextAlignment: TextAlignment.CENTER,
                 }),
                 ui.createEntry({
-                    text: exportString,
-                    selectionLength:exportString.length,
+                    text: lastRunTokenized[lemma.level],
+                    selectionLength:lastRunTokenized[lemma.level].length,
                     cursorPosition:0,
                     maxLength:2147483647
                 }),
@@ -495,8 +498,8 @@ var init = () => {
                     horizontalTextAlignment: TextAlignment.CENTER,
                 }),
                 ui.createEntry({
-                    text: exportStringBest,
-                    selectionLength:exportStringBest.length,
+                    text: bestRunTokenized[lemma.level],
+                    selectionLength:bestRunTokenized[lemma.level].length,
                     cursorPosition:0,
                     maxLength:2147483647
                 }),
@@ -522,6 +525,8 @@ var init = () => {
                     onClicked: () => {
                         if(importLegality) {
                             importedRun[lemma.level] = fromCompressedString(importString);
+                            importedRunTokenized[lemma.level] = importString;
+                            importString = "";
                             P.hide()
                         } 
                     }  
@@ -1141,11 +1146,13 @@ var init = () => {
             lemma.level-=1;
             record.push(new Purchase('Pf.', Ts[lemma.level], 1));
             lastRun[lemma.level]=record.slice(0);
+            lastRunTokenized[lemma.level]=toCompressedString(lastRun[lemma.level]);
             let oldtime = bestTime[lemma.level];
             bestTime[lemma.level] = bestTime[lemma.level].min(Ts[lemma.level]);
             P.title = "Attempt Summary";
             if(oldtime == timeLimit) {
                 bestRun[lemma.level]=lastRun[lemma.level];
+                bestRunTokenized[lemma.level]=toCompressedString(lastRun[lemma.level]);
                 P.content = ui.createStackLayout({
                     children: [
                         ui.createLabel({
@@ -1165,6 +1172,7 @@ var init = () => {
             }
             else if(Ts[lemma.level]<oldtime) {
                 bestRun[lemma.level]=lastRun[lemma.level];
+                bestRunTokenized[lemma.level]=toCompressedString(lastRun[lemma.level]);
                 P.content = ui.createStackLayout({
                     children: [
                         ui.createLabel({
@@ -1184,6 +1192,7 @@ var init = () => {
             }
             else if(Ts[lemma.level]==oldtime){
                 bestRun[lemma.level]=lastRun[lemma.level];
+                bestRunTokenized[lemma.level]=toCompressedString(lastRun[lemma.level]);
                 P.content = 
                         ui.createLabel({
                             text: "You have proven Lemma " + (lemma.level+1).toString()+ " in " + Ts[lemma.level].toString(1) + " seconds, this ties your old record. Keep going!",
@@ -1404,7 +1413,7 @@ var getInternalState = () => {
         result += " " + qs[i].toString() + " " + currencyValues[i].toString() + " " + bestTime[i].toString() + " " + Ts[i].toString();
     result+="~"+toCompressedString(record)
     for(let i=0;i<lemmaCount;++i)
-        result +="~" + toCompressedString(lastRun[i]) + "~" + toCompressedString(bestRun[i]) + "~" + toCompressedString(importedRun[i]);
+        result +="~" + lastRunTokenized[i] + "~" + bestRunTokenized[i] + "~" + importedRunTokenized[i];
     return result;
 }
 
@@ -1419,6 +1428,9 @@ var setInternalState = (state) => {
         if(terms[3*i+2]) lastRun[i] = fromCompressedString(terms[3*i+2]);
         if(terms[3*i+3]) bestRun[i] = fromCompressedString(terms[3*i+3]);
         if(terms[3*i+4]) importedRun[i] = fromCompressedString(terms[3*i+4]);
+        lastRunTokenized[i] = terms[3*i+2];
+        bestRunTokenized[i] = terms[3*i+2];
+        importedRunTokenized[i] = terms[3*i+2];
         if (values.length > 4*i + 1) qs[i] = parseBigNumber(values[4*i+1]);
         if (values.length > 4*i + 2) currencyValues[i] = parseBigNumber(values[4*i+2]);
         if (values.length > 4*i + 3) bestTime[i] = parseBigNumber(values[4*i + 3]);
