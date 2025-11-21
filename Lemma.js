@@ -17,7 +17,7 @@ var id = "convergence_test_speedrun";
 var name = "Convergence Test (Speedrun)";
 var description = "An speedrun-oriented implementation of the 'Convergence Test' theory from the game.";
 var authors = "Gilles-Philippe Paillé, pacowoc";
-var version = 2;
+var version = 3;
 
 var c11, c12, c13;
 var c21, c22, c23, c24;
@@ -359,7 +359,7 @@ function getViewRecords(combinedLog,j,page){
                     cache.push(ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
                         textColor: Color.TRANSPARENT,
-                        fontSize: 12,
+                        fontSize: 16,
                         text: "."
                         }))
                 }
@@ -367,7 +367,7 @@ function getViewRecords(combinedLog,j,page){
                     cache.push(
                             ui.createLabel({
                                 horizontalTextAlignment: TextAlignment.CENTER,
-                                fontSize: 12,
+                                fontSize: 16,
                                 textColor: combinedLog[j][i].count > 0 ? Color.fromHex("#00FF00") : Color.fromHex("#ff0000"),
                                 text: combinedLog[j][i].variable + "(" + levels[j][combinedLog[j][i].variable].toString() + ")@" + combinedLog[j][i].variable.toString(1)
                             })
@@ -393,36 +393,42 @@ var init = () => {
         let title = [
             ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
+                        verticalTextAlignment: TextAlignment.CENTER,
                         column: 0,
                         row: 0,
                         text: "Last"
             }),
             ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
+                        verticalTextAlignment: TextAlignment.CENTER,
                         column: 1,
                         row: 0,
                         text: "Best"
             }),
             ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
+                        verticalTextAlignment: TextAlignment.CENTER,
                         column: 2,
                         row: 0,
                         text: "Ref."
             }),
             ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
+                        verticalTextAlignment: TextAlignment.CENTER,
                         column: 0,
                         row: 1,
                         text: lastRun[lemma.level].length>0 ? lastRun[lemma.level].at(-1).time.toString(1): "==="
             }),
             ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
+                        verticalTextAlignment: TextAlignment.CENTER,
                         column: 1,
                         row: 1,
                         text: bestRun[lemma.level].length>0 ? bestRun[lemma.level].at(-1).time.toString(1): "==="
             }),
             ui.createLabel({
                         horizontalTextAlignment: TextAlignment.CENTER,
+                        verticalTextAlignment: TextAlignment.CENTER,
                         column: 2,
                         row: 1,
                         text: importedRun[lemma.level].length>0?importedRun[lemma.level].at(-1).time.toString(1): "==="
@@ -440,13 +446,14 @@ var init = () => {
                         }
             }),
             ui.createLabel({
-                        text:()=>page.toString()+"/"+Math.floor(combinedLog[0].length/50)+1,
+                        text:()=>(page+1).toString()+"/"+(Math.floor(combinedLog[0].length/50)+1).toString(),
                         horizontalTextAlignment: TextAlignment.CENTER,
+                        verticalTextAlignment: TextAlignment.CENTER,
                         column: 1,
                         row: 2,
             }),
             ui.createButton({
-                        isEnabled: ()=>page*50<=combinedLog[0].length,
+                        isEnabled: ()=>page*50+50<=combinedLog[0].length,
                         text:">",
                         column: 2,
                         row: 2,
