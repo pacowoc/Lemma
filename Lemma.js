@@ -354,6 +354,9 @@ function getViewRecords(combinedLog,j,page){
             "Pf.":0
             },
         ]
+    for(let i=0;i<page*50;i++){
+        levels[j][combinedLog[j][i].variable]+=combinedLog[j][i].count;
+    }
     for(let i=page*50;i<Math.min(page*50+50,combinedLog[0].length);i++){
                 if(combinedLog[j][i]==null){
                     cache.push(ui.createLabel({
@@ -364,6 +367,7 @@ function getViewRecords(combinedLog,j,page){
                         }))
                 }
                 else{
+                    levels[j][combinedLog[j][i].variable]+=combinedLog[j][i].count;
                     cache.push(
                             ui.createLabel({
                                 horizontalTextAlignment: TextAlignment.CENTER,
@@ -372,7 +376,7 @@ function getViewRecords(combinedLog,j,page){
                                 text: combinedLog[j][i].variable + "(" + levels[j][combinedLog[j][i].variable].toString() + ")@" + combinedLog[j][i].variable.toString(1)
                             })
                         );
-                    levels[j][combinedLog[j][i].variable]+=combinedLog[j][i].count;
+                    
                 }
     }
     return cache;
