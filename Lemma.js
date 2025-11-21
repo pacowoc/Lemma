@@ -373,7 +373,7 @@ function getViewRecords(combinedLog,j,page){
                                 horizontalTextAlignment: TextAlignment.CENTER,
                                 fontSize: 16,
                                 textColor: combinedLog[j][i].count > 0 ? Color.fromHex("#00FF00") : Color.fromHex("#ff0000"),
-                                text: combinedLog[j][i].variable + "(" + levels[j][combinedLog[j][i].variable].toString() + ")@" + combinedLog[j][i].variable.toString(1)
+                                text: combinedLog[j][i].variable + "(" + levels[j][combinedLog[j][i].variable].toString() + ")@" + combinedLog[j][i].time.toString(1)
                             })
                         );
                     
