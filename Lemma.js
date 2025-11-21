@@ -355,7 +355,7 @@ function getViewRecords(combinedLog,j,page){
             },
         ]
     for(let i=0;i<page*50;i++){
-        levels[j][combinedLog[j][i].variable]+=combinedLog[j][i].count;
+        if(combinedLog[j][i]==null) levels[j][combinedLog[j][i].variable]+=combinedLog[j][i].count;
     }
     for(let i=page*50;i<Math.min(page*50+50,combinedLog[0].length);i++){
                 if(combinedLog[j][i]==null){
