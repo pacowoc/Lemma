@@ -1358,7 +1358,7 @@ var getInternalState = () => {
 
     for (let i = 0; i < lemmaCount; ++i)
         result += " " + qs[i].toString() + " " + currencyValues[i].toString() + " " + bestTime[i].toString() + " " + Ts[i].toString();
-    result+="~"+toCompressedString(record)
+    result+="~"
     for(let i=0;i<lemmaCount;++i)
         result +="~" + lastRunTokenized[i] + "~" + bestRunTokenized[i] + "~" + importedRunTokenized[i];
     return result;
@@ -1368,7 +1368,7 @@ var getInternalState = () => {
 var setInternalState = (state) => {
     let terms = state.split("~")
     let values = terms[0].split(" ");
-    record = fromCompressedString(terms[1]);
+    record = [];
     for (let i = 0; i < lemmaCount; ++i)
     {
         lastRunTokenized[i] = terms[3*i+2]
