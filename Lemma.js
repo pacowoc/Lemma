@@ -1411,6 +1411,12 @@ var setInternalState = (state) => {
     lastRun[0] = fromCompressedString(lastRunTokenized[0])
     bestRun[0] = fromCompressedString(bestRunTokenized[0])
     importedRun[0] = fromCompressedString(importedRunTokenized[0])
+    theory.invalidatePrimaryEquation(); 
+    theory.invalidateSecondaryEquation(); 
+    theory.invalidateQuaternaryValues();
+    resetStage();
+    updateAvailability(); 
+    onLemmaChanged();
 }
 
 var isCurrencyVisible = (index) => lemma.level < lemmaCount;
