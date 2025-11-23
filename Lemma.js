@@ -1283,7 +1283,7 @@ var tick = (elapsedTime, multiplier) => {
         let qt0 = qs[lemma.level];
         let qt1 = qt0 + dq;
         let q = qt1;
-        Ts[lemma.level] += dt;
+        Ts[lemma.level] += 0.1;
         qs[lemma.level] = q;
 
         if (lemmaNumber == 1)
