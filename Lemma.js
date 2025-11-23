@@ -490,7 +490,7 @@ var init = () => {
                             fromCompressedString(importString);
                             importLegality = true;
                         }catch(e){
-                            inputLegality = false;
+                            importLegality = false;
                         }
                     },
                     maxLength:2147483647
