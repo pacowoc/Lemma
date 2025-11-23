@@ -1251,7 +1251,7 @@ var onLemmaChanged = () => {
 
 
 var tick = (elapsedTime, multiplier) => {
-    let dt = BigNumber.from(elapsedTime); // No multiplier. Everyone is equal.
+    let dt = 0.1; // No multiplier. Everyone is equal.
     let lemmaNumber = lemma.level + 1;
     let isLemmaStarted = qs[lemma.level] > initialQ[lemma.level];
 
@@ -1283,7 +1283,7 @@ var tick = (elapsedTime, multiplier) => {
         let qt0 = qs[lemma.level];
         let qt1 = qt0 + dq;
         let q = qt1;
-        Ts[lemma.level] += 0.1;
+        Ts[lemma.level] += dt;
         qs[lemma.level] = q;
 
         if (lemmaNumber == 1)
@@ -1403,10 +1403,10 @@ var setInternalState = (state) => {
         lastRunTokenized[i] = terms[3*i+2]
         bestRunTokenized[i] = terms[3*i+3];
         importedRunTokenized[i] = terms[3*i+4]
-        if (values.length > 4*i + 1) qs[i] = parseBigNumber(values[4*i+1]);
-        if (values.length > 4*i + 2) currencyValues[i] = parseBigNumber(values[4*i+2]);
+        if (values.length > 4*i + 1) qs[i] = initialQ[i]
+        if (values.length > 4*i + 2) currencyValues[i] = BigNumber.from(0)
         if (values.length > 4*i + 3) bestTime[i] = parseBigNumber(values[4*i + 3]);
-        if (values.length > 4*i + 4) Ts[i] = parseBigNumber(values[4*i + 4]);
+        if (values.length > 4*i + 4) Ts[i] = initialT[i]
     }
     lastRun[0] = fromCompressedString(lastRunTokenized[0])
     bestRun[0] = fromCompressedString(bestRunTokenized[0])
