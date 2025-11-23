@@ -86,7 +86,13 @@ var bestRun = [[],[],[],[],[],[],[]]
 var importedRun = [[],[],[],[],[],[],[]]
 var lastRunTokenized = ["","","","","","",""]
 var bestRunTokenized = ["","","","","","",""]
-var importedRunTokenized = ["","","","","","",""]
+var importedRunTokenized = ["","","","","","",""];
+function getBaseLevel(lemma,vari){
+    if(lemma==5&&vari=="c3"){
+        return 2;
+    }
+    return 0;
+}
 const isRTL = Localization.isRTL;
 
 const replacementMap2 = {
@@ -244,59 +250,24 @@ function merge3(a, b, c) {
 
 function getViewRecords(combinedLog,j,page){
     cache = []
+    let baseLevels = {
+            "c1" :getBaseLevel(lemma.level,"c1"),
+            "c2" :getBaseLevel(lemma.level,"c2"),
+            "c3" :getBaseLevel(lemma.level,"c3"),
+            "c4" :getBaseLevel(lemma.level,"c4"),
+            "c5" :getBaseLevel(lemma.level,"c5"),
+            "c6" :getBaseLevel(lemma.level,"c6"),
+            "c7" :getBaseLevel(lemma.level,"c7"),
+            "c8" :getBaseLevel(lemma.level,"c8"),
+            "q1" :getBaseLevel(lemma.level,"q1"),
+            "q2" :getBaseLevel(lemma.level,"q2"),
+            "Pf.":getBaseLevel(lemma.level,"Pf.")
+            }
     let levels = [
-            {
-            "c1" :0,
-            "c2" :0,
-            "c3" :0,
-            "c4" :0,
-            "c5" :0,
-            "c6" :0,
-            "c7" :0,
-            "c8" :0,
-            "q1" :0,
-            "q2" :0,
-            "Pf.":0
-            },
-            {
-            "c1" :0,
-            "c2" :0,
-            "c3" :0,
-            "c4" :0,
-            "c5" :0,
-            "c6" :0,
-            "c7" :0,
-            "c8" :0,
-            "q1" :0,
-            "q2" :0,
-            "Pf.":0
-            },
-            {
-            "c1" :0,
-            "c2" :0,
-            "c3" :0,
-            "c4" :0,
-            "c5" :0,
-            "c6" :0,
-            "c7" :0,
-            "c8" :0,
-            "q1" :0,
-            "q2" :0,
-            "Pf.":0
-            },
-            {
-            "c1" :0,
-            "c2" :0,
-            "c3" :0,
-            "c4" :0,
-            "c5" :0,
-            "c6" :0,
-            "c7" :0,
-            "c8" :0,
-            "q1" :0,
-            "q2" :0,
-            "Pf.":0
-            },
+            baseLevels,
+            baseLevels,
+            baseLevels,
+            baseLevels
         ]
     for(let i=0;i<page*50;i++){
         if(combinedLog[j][i]!=null) levels[j][combinedLog[j][i].variable]+=combinedLog[j][i].count;
