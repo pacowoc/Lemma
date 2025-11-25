@@ -1379,9 +1379,9 @@ var setInternalState = (state) => {
         if (values.length > 4*i + 3) bestTime[i] = parseBigNumber(values[4*i + 3]);
         if (values.length > 4*i + 4) Ts[i] = initialT[i]
     }
-    lastRun[0] = fromCompressedString(lastRunTokenized[0])
-    bestRun[0] = fromCompressedString(bestRunTokenized[0])
-    importedRun[0] = fromCompressedString(importedRunTokenized[0])
+    lastRun[lemma.level] = fromCompressedString(lastRunTokenized[0])
+    bestRun[lemma.level] = fromCompressedString(bestRunTokenized[0])
+    importedRun[lemma.level] = fromCompressedString(importedRunTokenized[0])
     theory.invalidatePrimaryEquation(); 
     theory.invalidateSecondaryEquation(); 
     theory.invalidateQuaternaryValues();
