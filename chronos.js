@@ -106,8 +106,8 @@ var getInternalState = () => t.toBase64String() + " " + realExponent.toBase64Str
 
 var setInternalState = (state) => {
     vars = state.split(" ")
-    t.fromBase64String(vars[0]);
-    realExponent.fromBase64String(vars[1]);
+    t=BigNumber.fromBase64String(vars[0]);
+    realExponent=BigNumber.fromBase64String(vars[1]);
     updateExponent();
     theory.invalidatePrimaryEquation();
 }
