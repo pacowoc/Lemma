@@ -1358,7 +1358,7 @@ var getInternalState = () => {
 
     for (let i = 0; i < lemmaCount; ++i)
         result += " " + qs[i].toString() + " " + currencyValues[i].toString() + " " + bestTime[i].toString() + " " + Ts[i].toString();
-    result+="~"+toCompressedString(record)
+    result+="~"
     for(let i=0;i<lemmaCount;++i)
         result +="~" + lastRunTokenized[i] + "~" + bestRunTokenized[i] + "~" + importedRunTokenized[i];
     return result;
@@ -1368,7 +1368,7 @@ var getInternalState = () => {
 var setInternalState = (state) => {
     let terms = state.split("~")
     let values = terms[0].split(" ");
-    record = fromCompressedString(terms[1]);
+    record = [];
     for (let i = 0; i < lemmaCount; ++i)
     {
         lastRunTokenized[i] = terms[3*i+2]
@@ -1379,9 +1379,9 @@ var setInternalState = (state) => {
         if (values.length > 4*i + 3) bestTime[i] = parseBigNumber(values[4*i + 3]);
         if (values.length > 4*i + 4) Ts[i] = initialT[i]
     }
-    lastRun[0] = fromCompressedString(lastRunTokenized[0])
-    bestRun[0] = fromCompressedString(bestRunTokenized[0])
-    importedRun[0] = fromCompressedString(importedRunTokenized[0])
+    lastRun[lemma.level] = fromCompressedString(lastRunTokenized[lemma.level])
+    bestRun[lemma.level] = fromCompressedString(bestRunTokenized[lemma.level])
+    importedRun[lemma.level] = fromCompressedString(importedRunTokenized[lemma.level])
     theory.invalidatePrimaryEquation(); 
     theory.invalidateSecondaryEquation(); 
     theory.invalidateQuaternaryValues();
