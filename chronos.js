@@ -102,10 +102,12 @@ var tick = (elapsedTime, multiplier) => {
     theory.invalidateTertiaryEquation();
 }
 
-var getInternalState = () => t.toBase64String();
+var getInternalState = () => t.toBase64String() + "/" + realExponent.toBase64String();
 
 var setInternalState = (state) => {
-    t.fromBase64String(state);
+    vars = state.split("/")
+    t.fromBase64String(vars[0]);
+    realExponent.fromBase64String(vars[1]);
     updateExponent();
 }
 
