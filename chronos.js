@@ -74,10 +74,10 @@ var init = () => {
             realExponent = Exponent;
             realize.level = 0;
             theory.invalidatePrimaryEquation();
-            t = BigNumber.ZERO;
+            t = BigNumber.from(0.01);
         }
     }
-    t = BigNumber.ZERO;
+    t = BigNumber.from(0.01);
     realExponent=BigNumber.ZERO;
     maxLevel = 1;
     updateExponent();
