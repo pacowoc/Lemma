@@ -96,7 +96,7 @@ function updateExponent(){
 }
 
 var tick = (elapsedTime, multiplier) => {
-    currency.value+=multiplier*elapsedTime*t.pow(Exponent)
+    currency.value+=multiplier*elapsedTime*t.pow(realExponent)
     t += elapsedTime*multiplier;
     theory.invalidateTertiaryEquation();
 }
@@ -108,6 +108,7 @@ var setInternalState = (state) => {
     t.fromBase64String(vars[0]);
     realExponent.fromBase64String(vars[1]);
     updateExponent();
+    theory.invalidatePrimaryEquation();
 }
 
 var getPrimaryEquation = () => {
