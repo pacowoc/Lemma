@@ -97,7 +97,7 @@ function updateExponent(){
 }
 
 var tick = (elapsedTime, multiplier) => {
-    currency.value+=multiplier*elapsedTime*t.pow(realExponent)
+    currency.value+=multiplier*elapsedTime*t.pow(realExponent);
     t += elapsedTime*multiplier;
     theory.invalidateTertiaryEquation();
 }
