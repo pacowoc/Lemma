@@ -111,7 +111,7 @@ var setInternalState = (state) => {
 }
 
 var getPrimaryEquation = () => {
-    return "\\dot{\\rho}=t^{"+realExponent.toString(6)+"}";
+    return "\\tau = \\rho_{max}^2\\ \\ \\ \\ \\dot{\\rho}=t^{"+realExponent.toString(6)+"}";
 }
 
 var getSecondaryEquation = () => "k=\\frac{c}{100}\\Sigma_{i=1}^a\\Sigma_{j=1}^b{\\frac{sin(c(1+i)^j)}{(1+i)^j}}";
