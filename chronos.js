@@ -72,7 +72,7 @@ var init = () => {
                 return
             }
             realExponent = Exponent;
-            realExponent.level = 0;
+            realize.level = 0;
             theory.invalidatePrimaryEquation();
             t = BigNumber.ZERO;
         }
@@ -96,7 +96,6 @@ function updateExponent(){
 }
 
 var tick = (elapsedTime, multiplier) => {
-    log(t.toString())
     currency.value+=multiplier*elapsedTime*t.pow(Exponent)
     t += elapsedTime*multiplier;
     theory.invalidateTertiaryEquation();
