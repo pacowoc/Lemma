@@ -18,7 +18,7 @@ var realExponent = BigNumber.ZERO;
 var kDecreaseP = ui.createPopup({
     title: "What are you doing?",
     content: ui.createLabel({
-        text: "The new exponent is lower than the old exponent!",
+        text: "The new exponent is lower than or equal to the old exponent, you are resetting t for nothing!",
         horizontalTextAlignment: TextAlignment.CENTER,
     }),
     closeOnBackgroundClicked: true,
