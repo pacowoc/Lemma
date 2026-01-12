@@ -13,7 +13,16 @@ var version = 1;
 var alwaysShowRefundButtons = () => true;
 var Exponent = BigNumber.ZERO;
 var t = BigNumber.ZERO;
-
+var maxLevel = 1;
+var realExponent = BigNumber.ZERO;
+var kDecreaseP = ui.createPopup({
+    title: "What are you doing?",
+    content: ui.createLabel({
+        text: "The new exponent is lower than the old exponent!",
+        horizontalTextAlignment: TextAlignment.CENTER,
+    }),
+    closeOnBackgroundClicked: true,
+})
 var init = () => {
     currency = theory.createCurrency();
     {
@@ -52,7 +61,24 @@ var init = () => {
         }
         b.maxLevel = 9;
     }
+    //Realize
+    {
+        realize = theory.createPermanentUpgrade(0,currency, new FreeCost());
+        realize.getDescription = (_) =>"Apply k Value"
+        realize.getInfo = (_) =>"Reset t and Apply the k value to the Exponent of t"
+        realize.bought = (_) =>{
+            if(realExponent>Exponent){
+                kDecreaseP.show()
+                return
+            }
+            realExponent = Exponent;
+            realExponent.level = 0;
+            theory.invalidatePrimaryEquation();
+            t = BigNumber.ZERO;
+        }
+    }
     t = BigNumber.ZERO;
+    maxLevel = 1;
     updateExponent();
 }
 
@@ -72,7 +98,8 @@ function updateExponent(){
 var tick = (elapsedTime, multiplier) => {
     log(t.toString())
     currency.value+=multiplier*elapsedTime*t.pow(Exponent)
-    t += elapsedTime;
+    t += elapsedTime*multiplier;
+    theory.invalidateTertiaryEquation();
 }
 
 var getInternalState = () => t.toBase64String();
@@ -83,14 +110,14 @@ var setInternalState = (state) => {
 }
 
 var getPrimaryEquation = () => {
-    return "\\dot{\\rho}=t^{k}";
+    return "\\dot{\\rho}=t^{"+realExponent.toString(6)+"}";
 }
 
 var getSecondaryEquation = () => "k=\\frac{c}{100}\\Sigma_{i=1}^a\\Sigma_{j=1}^b{\\frac{sin(c(1+i)^j)}{(1+i)^j}}";
-theory.secondaryEquationHeight = 100;
+theory.secondaryEquationHeight = 50;
 theory.secondaryEquationScale = 1.2;
-var getTertiaryEquation = () => "k="+Exponent.toString(6);
-var getTau = () => currency.value.pow(0.6);
+var getTertiaryEquation = () => "t="+t.toString(4) + "\\ " +"k="+Exponent.toString(6) + "\\ " + "\\dot{\\rho}=" + (t.pow(Exponent).toString(6));
+var getTau = () => currency.value.pow(2);
 var get2DGraphValue = () => currency.value.sign * (BigNumber.ONE + currency.value.abs()).log10().toNumber();
 
 init();
