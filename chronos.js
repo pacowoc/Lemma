@@ -78,6 +78,7 @@ var init = () => {
         }
     }
     t = BigNumber.ZERO;
+    realExponent=BigNumber.ZERO;
     maxLevel = 1;
     updateExponent();
 }
