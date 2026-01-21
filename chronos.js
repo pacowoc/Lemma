@@ -115,10 +115,10 @@ var setInternalState = (state) => {
 }
 
 var getPrimaryEquation = () => {
-    return "\\tau = \\rho_{max}^2\\ \\ \\ \\ \\dot{\\rho}=t^{"+realExponent.toString(6)+"}";
+    return "\\tau = \\max \\rho^2\\ \\ \\ \\ \\dot{\\rho}=t^{"+realExponent.toString(6)+"}";
 }
 
-var getSecondaryEquation = () => "k=\\frac{c}{100}\\Sigma_{i=1}^a\\Sigma_{j=1}^b{\\frac{sin(c(1+i)^j)}{(1+i)^j}}";
+var getSecondaryEquation = () => "k=\\frac{c}{100}\\Sigma_{i=1}^a\\Sigma_{j=1}^b{\\frac{\\sin(c(1+i)^j)}{(1+i)^j}}";
 theory.secondaryEquationHeight = 50;
 theory.secondaryEquationScale = 1.2;
 var getTertiaryEquation = () => "t="+t.toString(4) + "\\ " +"k="+Exponent.toString(6) + "\\ " + "\\dot{\\rho}=" + rhodot.toString(6);
