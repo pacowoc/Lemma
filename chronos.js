@@ -125,7 +125,7 @@ function updateExponent(){
 var tick = (elapsedTime, multiplier) => {
     rhodot=multiplier*t.pow(realExponent);
     currency.value+=multiplier*elapsedTime*t.pow(realExponent);
-    t += elapsedTime;
+    t += elapsedTime*multiplier;
     theory.invalidateTertiaryEquation();
 }
 
