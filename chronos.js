@@ -65,6 +65,7 @@ var init = () => {
         realize.getDescription = (_) =>"Apply k Value"
         realize.getInfo = (_) =>"Reset t and Apply the k value to the Exponent of t"
         realize.bought = (_) =>{
+            theory.invalidatePrimaryEquation();
             if(realExponent>=Exponent){
                 kDecreaseP.show()
                 return
